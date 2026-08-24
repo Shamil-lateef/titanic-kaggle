@@ -67,9 +67,48 @@ is to teach, not to hand over finished code.
   validation, a real train/test-split-then-predict-on-test.csv submission
   flow, which the v1 notebook never reached).
 
+### 2026-08-24 — Session 2: EDA restart, validation-strategy discussion
+- Decided fresh start, structure can echo v1, goal is learning first,
+  submission is a stretch goal only if progressing well (see Decisions).
+- Only one Python on the machine: 3.12.6 at
+  `C:\Users\Shamil\AppData\Local\Programs\Python\Python312\python.exe`, no
+  project venv. Has pandas/numpy/scikit-learn/ipykernel; was missing
+  matplotlib/seaborn — learner installing themselves.
+- Added scaffolding cell to `main.ipynb`: imports + `pd.read_csv` for both
+  train/test + `.shape` check.
+- Learner ran `.describe()`, `.info()`, `.isnull().sum()`, `.shape` on both
+  train and test.
+- Discussed (conceptual, no code yet): why load train+test together early is
+  fine but fitting (medians/encoders/scalers) must only ever use train data;
+  why a validation split is required here specifically (test.csv has no
+  `Survived` column, so it can't be used to self-check accuracy); holdout
+  (`train_test_split`) vs k-fold CV (`cross_val_score`) tradeoffs, leaning
+  CV for a small ~891-row dataset.
+- Learner explicitly deferred actually doing the split to next session.
+- Notebook still has only the one scaffolding cell — no EDA code cells
+  written yet (EDA so far was run ad hoc by the learner, not saved back).
+
 ## Open questions / not yet decided
 
-- Whether the learner wants to eventually produce a submission.csv for the
-  actual Kaggle leaderboard, or this is purely for learning.
 - Target model/topic depth (e.g. do we go beyond decision trees into
-  ensembles, logistic regression, etc.)?
+  ensembles, logistic regression, etc.)? Will emerge as we go.
+- **Learner's question for next session (asked 2026-08-24, start here):**
+  "the timing of doing things" — when should we split train/val? When should
+  feature engineering happen relative to that split? Which preprocessing
+  steps are safe to do before splitting (don't leak) vs which must happen
+  after/fit-on-train-only? Is there a general rule for this, or does it vary
+  dataset to dataset? This is a leakage/ordering question — good next topic
+  since they just grasped *why* a validation set is needed (see log below)
+  but haven't yet touched split mechanics or feature engineering in this
+  notebook.
+
+## Decisions
+
+- **2026-08-24:** Learner wants a fresh start in `main.ipynb`, building step
+  by step rather than pasting v1 back in — but it's fine if the resulting
+  structure ends up similar to v1 (EDA → feature engineering → encoding →
+  model → validation). Goal for now is learning, not leaderboard score. A
+  real submission.csv is a stretch goal only if they're progressing well —
+  don't optimize for it yet, don't let it drive early decisions (e.g. no
+  need to rush to test.csv or worry about leaderboard-safe preprocessing
+  until they say so).
