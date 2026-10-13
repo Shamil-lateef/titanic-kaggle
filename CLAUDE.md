@@ -68,12 +68,27 @@ is to teach, not to hand over finished code.
 - No model has been trained or evaluated yet; `Cabin`, `Name`, and `Ticket`
   still need a deliberate modeling decision.
 
+### 2026-10-13 — Session 5
+- Added `HasCabin` to `X_train` using `Cabin.notna().astype(int)` and inspected
+  sample rows. This feature has not yet been added to `X_valid`, and the
+  original `Cabin` column has not yet been dropped.
+- Extracted `Title` from `Name` in both `X_train` and `X_valid` with
+  `str.extract(r",\s*([^.]+)\.")[0]`. Explained the regex and why `[0]`
+  selects the captured column from the default DataFrame result.
+- Learner confirmed `X_valid` had no missing `Embarked` values, so it did not
+  need filling; the training split's missing `Embarked` values were filled
+  using the training mode before one-hot encoding.
+- No model has been trained or evaluated yet. The latest notebook state has
+  `Title` in both splits, while the `HasCabin` transformation is only in
+  `X_train` so far.
+
 ## Open questions / not yet decided
 
 - Target model/topic depth (e.g. do we go beyond decision trees into
   ensembles, logistic regression, etc.)? Will emerge as we go.
-- **In progress:** deciding how to handle `Cabin`, `Name`, and `Ticket`, then
-  training and evaluating the first model. k-fold CV vs holdout is still
-  genuinely untaught.
+- **In progress:** add `HasCabin` to `X_valid`, remove the original `Cabin`
+  and `Name` columns after creating their features, decide how to handle
+  `Ticket`, then train and evaluate the first model. k-fold CV vs holdout is
+  still untaught.
 - Whether the learner wants to eventually produce a submission.csv for the
   actual Kaggle leaderboard, or this is purely for learning.
