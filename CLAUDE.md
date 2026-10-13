@@ -38,7 +38,8 @@ is to teach, not to hand over finished code.
 
 - `train.csv`, `test.csv`, `gender_submission.csv` — standard Kaggle Titanic
   files, in project root.
-- `main.ipynb` — the working notebook, currently empty.
+- `main.ipynb` — the working notebook, containing EDA and the current
+  preprocessing work.
 - Git repo initialized 2026-08-22 (`main` branch). Commit as we hit
   meaningful milestones (not every cell) so history reads like a diary of
   the learning journey. `.gitignore` excludes checkpoints and generated
@@ -52,14 +53,27 @@ is to teach, not to hand over finished code.
   preprocessing) via guided questions; learner correctly identified `Title`
   extraction as row-wise after a nudge. Resume here.
 
+### 2026-10-13 — Session 4
+- Explained data leakage and why the validation split must happen before
+  train-dependent preprocessing.
+- Created an 80/20 stratified train/validation split with `random_state=42`.
+- Filled missing `Age` values using the median calculated from `X_train`.
+- Dropped `PassengerId` from the modeling data.
+- Created `FamilySize = SibSp + Parch + 1`; kept `SibSp` and `Parch` for now.
+- Prepared `Fare` using the training median (the training split has no missing
+  Fare values; the test set has one missing value).
+- Filled missing `Embarked` values using the training mode and one-hot encoded
+  the categories as `Embarked_C`, `Embarked_Q`, and `Embarked_S`.
+- Clarified that one-hot encoded values being floats (`0.0`/`1.0`) is valid.
+- No model has been trained or evaluated yet; `Cabin`, `Name`, and `Ticket`
+  still need a deliberate modeling decision.
+
 ## Open questions / not yet decided
 
 - Target model/topic depth (e.g. do we go beyond decision trees into
   ensembles, logistic regression, etc.)? Will emerge as we go.
-- **In progress:** "the timing of things" — when to split train/val, and
-  which preprocessing is safe to do before a split (row-wise, no cross-row
-  statistic — e.g. `Title` regex extraction, `Sex` → 0/1 mapping) vs must be
-  fit on train-only after splitting (any cross-row statistic — e.g. `Age`
-  median fill, scaling). k-fold CV vs holdout is still genuinely untaught.
+- **In progress:** deciding how to handle `Cabin`, `Name`, and `Ticket`, then
+  training and evaluating the first model. k-fold CV vs holdout is still
+  genuinely untaught.
 - Whether the learner wants to eventually produce a submission.csv for the
   actual Kaggle leaderboard, or this is purely for learning.
