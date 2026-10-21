@@ -82,13 +82,22 @@ is to teach, not to hand over finished code.
   `Title` in both splits, while the `HasCabin` transformation is only in
   `X_train` so far.
 
+### 2026-10-21 - Session 6
+- Revisited the separation between feature engineering and preprocessing: `make_features` creates/selects columns, while the fitted pipeline imputes/scales `Age` and one-hot encodes `Sex`, `Embarked`, and `Title`. The learner added `X_train.head()` to inspect the raw feature frame and understood why those transformations are not visible there.
+- Replaced implicit `cv=5` with `StratifiedKFold(n_splits=5, shuffle=True, random_state=42)`. Explained folds, stratification, reproducibility, and why every candidate model must use the same folds for a controlled comparison.
+- Logistic-regression baseline using the explicit folds: accuracies `[0.84916201, 0.81460674, 0.82022472, 0.83146067, 0.82584270]`, mean `0.8283`, standard deviation `0.0119`.
+- Built and evaluated `tree_model`: the existing preprocessing pipeline plus `DecisionTreeClassifier(max_depth=3, random_state=42)`. Result: mean `0.8137`, standard deviation `0.0187`. Discussed how an unlimited-depth tree can overfit and why depth limits generalization.
+- Built and evaluated `random_forest_model`: the same preprocessing pipeline plus `RandomForestClassifier(max_depth=3, random_state=42)`. Result: mean `0.8227`, standard deviation `0.0111`. Explained that a random forest votes across varied trees to reduce instability; it does not automatically find the best depth. The default 100 estimators was used.
+- Current conclusion: logistic regression remains the best model of the three on this CV setup. Keep the existing `model` and submission code pointed at logistic regression; do not switch the submission to the forest just because it was tested.
+- Began a feature-engineering investigation of `Cabin`. `HasCabin` currently captures only whether a cabin is present. Exploratory deck results among the 204 non-missing cabins were: C 59 / 0.5932, B 47 / 0.7447, D 33 / 0.7576, E 32 / 0.7500, A 15 / 0.4667, F 13 / 0.6154, G 4 / 0.5000, T 1 / 0.0000 (count / survival rate).
+- Next tutoring step: explain why a `Deck` feature whose missing cabins become `"Unknown"` makes `HasCabin` redundant. Then, if the learner agrees, make one focused experiment: extract `Deck` row-wise from `Cabin`, retain A-F, combine G/T as `"Rare"`, use `"Unknown"` for missing cabins, replace `HasCabin` with `Deck` in the feature lists, and evaluate the logistic-regression pipeline with the same `cv`. Do not add this feature or tune more models before discussing the reasoning.
+
 ## Open questions / not yet decided
 
-- Target model/topic depth (e.g. do we go beyond decision trees into
-  ensembles, logistic regression, etc.)? Will emerge as we go.
-- **In progress:** add `HasCabin` to `X_valid`, remove the original `Cabin`
-  and `Name` columns after creating their features, decide how to handle
-  `Ticket`, then train and evaluate the first model. k-fold CV vs holdout is
-  still untaught.
-- Whether the learner wants to eventually produce a submission.csv for the
-  actual Kaggle leaderboard, or this is purely for learning.
+- **In progress:** decide whether and why to replace `HasCabin` with a richer
+  `Deck` feature, then run that single controlled cross-validation experiment.
+- After that, choose the next teaching topic from feature engineering,
+  error analysis, or carefully chosen model hyperparameters. Do not make a
+  sequence of leaderboard-driven changes.
+- This is a learning project, not a leaderboard-optimization project. Keep
+  experiments small, explainable, and measured against the fixed CV setup.
