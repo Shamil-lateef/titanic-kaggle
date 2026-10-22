@@ -18,9 +18,13 @@ is to teach, not to hand over finished code.
   high depth, why stratify the train/test split.
 - **Check understanding before moving on.** After a concept lands, a quick
   "does that make sense / want to try it?" beats plowing ahead.
-- **It's fine to write code when asked directly**, or for scaffolding
-  (boilerplate imports, loading data) — the teaching moments are in the
-  modeling/analysis decisions, not typing `import pandas as pd`.
+- When the learner asks to add or change notebook code, provide the snippet in
+  chat and say exactly where to place it and which dependent cells to rerun.
+  Let the learner enter and run it; do not edit `main.ipynb` on their behalf
+  unless they explicitly ask you to.
+- Code can be given directly when asked, or for scaffolding (boilerplate
+  imports, loading data) — the teaching moments are in the modeling/analysis
+  decisions, not typing `import pandas as pd`.
 - If the learner is stuck and asks to just be shown, that's their call — but
   default to Socratic mode.
 
@@ -90,14 +94,34 @@ is to teach, not to hand over finished code.
 - Built and evaluated `random_forest_model`: the same preprocessing pipeline plus `RandomForestClassifier(max_depth=3, random_state=42)`. Result: mean `0.8227`, standard deviation `0.0111`. Explained that a random forest votes across varied trees to reduce instability; it does not automatically find the best depth. The default 100 estimators was used.
 - Current conclusion: logistic regression remains the best model of the three on this CV setup. Keep the existing `model` and submission code pointed at logistic regression; do not switch the submission to the forest just because it was tested.
 - Began a feature-engineering investigation of `Cabin`. `HasCabin` currently captures only whether a cabin is present. Exploratory deck results among the 204 non-missing cabins were: C 59 / 0.5932, B 47 / 0.7447, D 33 / 0.7576, E 32 / 0.7500, A 15 / 0.4667, F 13 / 0.6154, G 4 / 0.5000, T 1 / 0.0000 (count / survival rate).
-- Next tutoring step: explain why a `Deck` feature whose missing cabins become `"Unknown"` makes `HasCabin` redundant. Then, if the learner agrees, make one focused experiment: extract `Deck` row-wise from `Cabin`, retain A-F, combine G/T as `"Rare"`, use `"Unknown"` for missing cabins, replace `HasCabin` with `Deck` in the feature lists, and evaluate the logistic-regression pipeline with the same `cv`. Do not add this feature or tune more models before discussing the reasoning.
+- Next tutoring step: interpret the controlled `Deck` experiment, then choose a teaching topic from feature engineering, error analysis, or carefully chosen model hyperparameters. Do not make a sequence of leaderboard-driven changes.
+
+### 2026-10-22 — Session 7
+- Explained that `HasCabin` is redundant when `Deck` is `"Unknown"` for missing cabins; raw `Cabin` values could contain cabin-specific detail, but this experiment intentionally keeps only the deck category.
+- Temporarily tested `Deck` in place of `HasCabin`: extracted the first character of `Cabin`, mapped G/T to `"Rare"`, used `"Unknown"` for missing values, and dropped the raw `Cabin` column after extraction.
+- Evaluated logistic regression using the same five-fold `StratifiedKFold` setup. Fold accuracies: `[0.84357542, 0.82584270, 0.79775281, 0.83146067, 0.84269663]`; mean `0.8283`, standard deviation `0.0167`. Compared with the `HasCabin` baseline (mean `0.8283`, standard deviation `0.0119`), the mean was unchanged and fold variation increased.
+- The learner concluded there was no meaningful change. Restored `HasCabin` in `main.ipynb` and archived the executed Deck version as `main_deck_experiment.ipynb`.
+- Re-executed the restored baseline notebook in a temporary working directory so its outputs reflect `HasCabin`; the existing project `submission.csv` was left untouched.
+- The learner ran error analysis on the fixed validation split. All 17 false negatives were male; 10 of 11 false positives were female, and 8 of those 10 were third class. In the validation split, the false-negative rate was 70.8% among male survivors versus 0% among female survivors; the false-positive rate was 62.5% among female non-survivors versus 1.1% among male non-survivors. Discussed a `Sex` × `Pclass` interaction as one targeted hypothesis.
+- Learner preference: give code and exact placement in chat so they can enter and run it themselves. Treat this as the default workflow for notebook changes; do not edit the notebook unless they explicitly request it.
+- Next tutoring step: review the completed `SexPclass` experiment and decide with the learner whether to retain it. Do not make a sequence of leaderboard-driven changes.
+
+### 2026-10-22 — Session 8
+- The learner added `SexPclass = Sex + "_Pclass_" + str(Pclass)` in `make_features` and included it in `categorical_features`. They ran the notebook cells themselves; preserve that learner-led workflow.
+- Logistic-regression five-fold CV using the same `StratifiedKFold` folds: `[0.82122905, 0.83707865, 0.82584270, 0.84269663, 0.84269663]`, mean `0.8339`, standard deviation `0.0088`. The prior `HasCabin` baseline was mean `0.8283`, standard deviation `0.0119`; the interaction improved four of five folds and the mean by about `0.0056`. Treat this as a modest, promising improvement, not proof of a universally better model.
+- Latest fixed validation result after rerunning all cells: accuracy `0.83799` (150/179), confusion matrix `[[100, 10], [19, 50]]` in sklearn's `[[TN, FP], [FN, TP]]` layout.
+- Latest validation error breakdown: among 45 female survivors, 3 were false negatives (6.7%); among 16 female non-survivors, 7 were false positives (43.8%). Among 24 male survivors, 16 were false negatives (66.7%); among 94 male non-survivors, 3 were false positives (3.2%). This supports the observed Sex-related error pattern, while the interaction did not remove it. Use the refreshed outputs above; earlier error-analysis outputs in the notebook were stale before the learner reran all cells.
+- The test set's single missing `Fare` value is handled by the numeric pipeline's median `SimpleImputer`, fit on training data and applied to validation/test data. No separate manual fill is needed; this keeps imputation within the leakage-safe pipeline.
+- Continue to provide requested notebook code in chat with the exact insertion point and rerun guidance. Do not edit the learner's notebook unless they explicitly ask.
+- Next: discuss whether to keep `SexPclass` given its small CV gain and lower fold-to-fold variation, and help the learner interpret how the interaction changes the decision boundary/errors before proposing another experiment.
 
 ## Open questions / not yet decided
 
-- **In progress:** decide whether and why to replace `HasCabin` with a richer
-  `Deck` feature, then run that single controlled cross-validation experiment.
-- After that, choose the next teaching topic from feature engineering,
-  error analysis, or carefully chosen model hyperparameters. Do not make a
-  sequence of leaderboard-driven changes.
+- The Deck feature experiment is complete and not adopted. The active notebook
+  uses `HasCabin`; the executed Deck run is preserved in
+  `main_deck_experiment.ipynb`.
+- **Next:** review the completed `SexPclass` experiment and decide with the
+  learner whether to retain it. Do not make a sequence of leaderboard-driven
+  changes.
 - This is a learning project, not a leaderboard-optimization project. Keep
   experiments small, explainable, and measured against the fixed CV setup.
