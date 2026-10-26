@@ -125,20 +125,46 @@ is to teach, not to hand over finished code.
 - Current fixed validation confusion matrix remains `[[100, 10], [19, 50]]` (`150/179`, accuracy about `0.8380`). Error analysis still shows the main weakness is missed male survivors; those false negatives have much lower predicted probabilities than correctly identified male survivors, so a simple probability-threshold change is unlikely to fix the pattern.
 - Preserve the learner-led workflow: give notebook code and exact placement in chat, and let the learner enter/run it unless they explicitly ask for an edit.
 
+### 2026-10-26 — Session 10
+- The learner added and ran an inspection cell that clones the preprocessing
+  transformer, fits it only on `X_train`, and displays the model-ready training
+  frame. It has 712 rows and 26 columns including `Survived`; there are no
+  remaining missing values. This inspection does not alter the actual model
+  pipeline.
+- Investigated the learner's observation that recorded cabins tend to have
+  higher fares. Overall, rows with a recorded cabin had median fare £55.22 and
+  survival rate 66.7% (204 passengers), versus £10.50 and 30.0% for rows with
+  no recorded cabin (687 passengers). This is strongly confounded by `Pclass`:
+  the respective mean classes were 1.196 and 2.639.
+- Cabin presence still had some within-class association with survival (for
+  example, 66.5% versus 47.5% in first class), which supports keeping
+  `HasCabin` as a legitimate candidate feature. It represents a recorded-cabin
+  signal, not evidence that having a cabin itself caused survival.
+- Ran controlled five-fold-CV checks without altering the notebook model:
+  the current baseline was 0.8350; removing `HasCabin` gave 0.8339 (a very
+  small +0.0011 contribution); adding `Fare * HasCabin` gave 0.8328. Do not add
+  a Fare–cabin interaction. Treat `HasCabin`, like `FarePerPerson`, as a small
+  provisional feature rather than a major discovery.
+- Learner chose the next topic: a narrow logistic-regression regularization
+  (`C`) comparison. Keep the active features, preprocessing, and fixed
+  stratified CV folds unchanged; change only `C` and interpret any difference
+  against the observed CV variation.
+
 ## Open questions / not yet decided
 
 - The Deck feature experiment is complete and not adopted. The active notebook
   uses `HasCabin`; the executed Deck run is preserved in
   `main_deck_experiment.ipynb`.
 - `SexPclass` is retained because its earlier controlled experiment showed a
-  modest improvement. `FarePerPerson` is retained provisionally because its
-  measured gain is very small but positive; discuss whether its simplicity is
-  worth keeping before adding anything else.
+  modest improvement. `FarePerPerson` and `HasCabin` are retained
+  provisionally: each has only a very small measured contribution in the
+  current feature set, so neither should be treated as a major discovery.
 - `SexAgeGroup` was tested and rejected. Do not make a sequence of additional
   feature changes without a specific hypothesis and the same fixed CV setup.
-- **Next:** review the feature-ablation results with the learner, then either
-  finalize/commit this milestone or run one narrowly defined family/ticket
-  feature experiment. Keep the current logistic pipeline and submission as the
-  reference until that experiment is measured.
+- **Next:** run a narrow, controlled logistic-regression regularization (`C`)
+  comparison. Keep the current features, preprocessing pipeline, and fixed CV
+  folds constant; do not make a feature or model-family change in the same
+  experiment. Compare a few hand-chosen `C` values to the current `C=1`
+  baseline, then interpret any difference in light of the CV variation.
 - This is a learning project, not a leaderboard-optimization project. Keep
   experiments small, explainable, and measured against the fixed CV setup.
