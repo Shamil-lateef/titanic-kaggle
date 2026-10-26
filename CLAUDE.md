@@ -42,8 +42,8 @@ is to teach, not to hand over finished code.
 
 - `train.csv`, `test.csv`, `gender_submission.csv` — standard Kaggle Titanic
   files, in project root.
-- `main.ipynb` — the working notebook, containing EDA and the current
-  preprocessing work.
+- `main.ipynb` — the working notebook, containing the reproducible feature,
+  preprocessing, evaluation, error-analysis, and submission workflow.
 - Git repo initialized 2026-08-22 (`main` branch). Commit as we hit
   meaningful milestones (not every cell) so history reads like a diary of
   the learning journey. `.gitignore` excludes checkpoints and generated
@@ -115,13 +115,30 @@ is to teach, not to hand over finished code.
 - Continue to provide requested notebook code in chat with the exact insertion point and rerun guidance. Do not edit the learner's notebook unless they explicitly ask.
 - Next: discuss whether to keep `SexPclass` given its small CV gain and lower fold-to-fold variation, and help the learner interpret how the interaction changes the decision boundary/errors before proposing another experiment.
 
+### 2026-10-26 — Session 9
+- Reorganized `main.ipynb` into a clean, reproducible sequence: load/inspect data, row-wise feature engineering, Title inspection, preprocessing/model definitions, controlled cross-validation, fixed validation error analysis, and final training/submission. Removed stale duplicate cells and kept the executed Deck notebook as the archive for that rejected experiment.
+- Kept the learner's active features: `Title`, `FamilySize`, `IsAlone`, `SexPclass`, and `HasCabin`. Added `FarePerPerson = Fare / FamilySize` to `make_features` and the numeric feature list.
+- Used the same five-fold `StratifiedKFold(n_splits=5, shuffle=True, random_state=42)` for the refreshed comparisons. Logistic regression with the current feature set scored `[0.82681564, 0.84269663, 0.82584270, 0.84269663, 0.83707865]`, mean `0.8350`, standard deviation `0.0074`.
+- Ran controlled ablations: removing `Title` reduced the mean to `0.8171` (contribution `+0.0180`), while removing `FarePerPerson` produced `0.8339` (contribution only `+0.0011`). `Title` is a meaningful improvement; `FarePerPerson` is currently retained as a small candidate, not a major discovery.
+- Tested `SexAgeGroup` separately and rejected it because it reduced cross-validation accuracy. Do not reintroduce it without a new reason or a clearer definition.
+- Refreshed the current model comparison: the depth-3 decision tree mean was `0.8137`; the depth-3 random forest mean was `0.8159`. Logistic regression remains the selected model. The final submission cell fits that pipeline on all 891 labeled rows and writes `submission.csv`.
+- Current fixed validation confusion matrix remains `[[100, 10], [19, 50]]` (`150/179`, accuracy about `0.8380`). Error analysis still shows the main weakness is missed male survivors; those false negatives have much lower predicted probabilities than correctly identified male survivors, so a simple probability-threshold change is unlikely to fix the pattern.
+- Preserve the learner-led workflow: give notebook code and exact placement in chat, and let the learner enter/run it unless they explicitly ask for an edit.
+
 ## Open questions / not yet decided
 
 - The Deck feature experiment is complete and not adopted. The active notebook
   uses `HasCabin`; the executed Deck run is preserved in
   `main_deck_experiment.ipynb`.
-- **Next:** review the completed `SexPclass` experiment and decide with the
-  learner whether to retain it. Do not make a sequence of leaderboard-driven
-  changes.
+- `SexPclass` is retained because its earlier controlled experiment showed a
+  modest improvement. `FarePerPerson` is retained provisionally because its
+  measured gain is very small but positive; discuss whether its simplicity is
+  worth keeping before adding anything else.
+- `SexAgeGroup` was tested and rejected. Do not make a sequence of additional
+  feature changes without a specific hypothesis and the same fixed CV setup.
+- **Next:** review the feature-ablation results with the learner, then either
+  finalize/commit this milestone or run one narrowly defined family/ticket
+  feature experiment. Keep the current logistic pipeline and submission as the
+  reference until that experiment is measured.
 - This is a learning project, not a leaderboard-optimization project. Keep
   experiments small, explainable, and measured against the fixed CV setup.
