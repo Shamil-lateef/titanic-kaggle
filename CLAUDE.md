@@ -150,6 +150,27 @@ is to teach, not to hand over finished code.
   stratified CV folds unchanged; change only `C` and interpret any difference
   against the observed CV variation.
 
+### 2026-10-28 — Session 11
+- Completed a narrow regularization comparison using the unchanged pipeline,
+  features, and fixed stratified folds. Results for `C = 0.1, 0.3, 1, 3, 10`
+  were respectively: `0.8305 ± 0.0082`, `0.8350 ± 0.0092`,
+  `0.8350 ± 0.0074`, `0.8328 ± 0.0087`, and `0.8362 ± 0.0107`.
+  The `C=10` mean was only `+0.0011` above the `C=1` baseline and within
+  fold-to-fold variation, so retain the default `C=1` rather than tune it.
+- Inspected fitted logistic-regression coefficients and predictions for a few
+  realistic passenger profiles. Emphasized that overlapping `Sex`, `Pclass`,
+  and `SexPclass` features mean a single coefficient is not an isolated or
+  causal effect; full-profile predictions are more interpretable. The results
+  reinforced `Title` as a useful signal and the very small contributions of
+  `Fare` and `FarePerPerson`.
+- Added an out-of-fold error-analysis section. With one held-out prediction
+  per passenger across the same five folds, accuracy was `0.8350` and the
+  confusion matrix was `[[493, 56], [91, 251]]`. The pattern seen in the fixed
+  validation set persists: missed survivors are concentrated among men
+  (especially third-class men: 37 of 47 actual survivors, 78.7%), while
+  female first- and second-class non-survivor rates have very small
+  denominators and must not be over-interpreted.
+
 ## Open questions / not yet decided
 
 - The Deck feature experiment is complete and not adopted. The active notebook
@@ -161,10 +182,9 @@ is to teach, not to hand over finished code.
   current feature set, so neither should be treated as a major discovery.
 - `SexAgeGroup` was tested and rejected. Do not make a sequence of additional
   feature changes without a specific hypothesis and the same fixed CV setup.
-- **Next:** run a narrow, controlled logistic-regression regularization (`C`)
-  comparison. Keep the current features, preprocessing pipeline, and fixed CV
-  folds constant; do not make a feature or model-family change in the same
-  experiment. Compare a few hand-chosen `C` values to the current `C=1`
-  baseline, then interpret any difference in light of the CV variation.
+- **Next:** walk through the out-of-fold error table with the learner,
+  especially the distinction between a rate and its denominator. Keep `C=1`
+  and avoid feature/model changes until a single new, explainable learning
+  question is selected.
 - This is a learning project, not a leaderboard-optimization project. Keep
   experiments small, explainable, and measured against the fixed CV setup.
